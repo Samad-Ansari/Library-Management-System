@@ -49,7 +49,10 @@
   + report lost book
   
   
-## Admin
+## Admin (Owner)
   Contains Fields
   * user Id
   * password
+  
+  Operations
+  + Crud On Librarian
