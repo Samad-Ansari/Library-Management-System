@@ -1,6 +1,6 @@
 # Library-Management-System
 
-### To Manage The Books issued by Student, return by Student and also calculate total fine etc
+### To Manage The Books issued by Student, return by Student, calculate total fine etc
 
 
 ## Main Modules
