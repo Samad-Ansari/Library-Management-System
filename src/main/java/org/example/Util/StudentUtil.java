@@ -1,13 +1,11 @@
 package org.example.Util;
 
-import org.example.Model.Account;
-import org.example.Model.Book;
-import org.example.Model.Student;
-import org.example.Model.StudentBook;
+import org.example.Model.*;
 import org.hibernate.Query;
 import org.hibernate.Session;
 
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -17,6 +15,8 @@ public class StudentUtil {
     private Session session;
     private Scanner scanner = new Scanner(System.in);
     private Student student = null;
+    private final int FINEPERLOST = 5;
+    private final int BOOKISSUEDAYS  = 20;
 
     public StudentUtil(Session session){
         this.session = session;
@@ -41,11 +41,23 @@ public class StudentUtil {
         System.out.println("Enter issue date (dd/mm/yyyy)");
         String returndate  = scanner.nextLine();
         String[] dates = returndate.split("/");
-        List<StudentBook> studentBooks = student.getBooks();
+        LocalDate localDate = LocalDate.of(Integer.parseInt(dates[2]), Integer.parseInt(dates[1]), Integer.parseInt(dates[0]));
+        Date returnDate = MyDate.toDate(localDate);
+        List<StudentBook> studentBooks = student.getStudentBooks();
         for(StudentBook studentBook: studentBooks){
             if(studentBook.getBook().getId() == bookId){
-                studentBook.setReturn_date(MyDate.toDate(LocalDate.of(Integer.parseInt(dates[2]), Integer.parseInt(dates[1]), Integer.parseInt(dates[0]))));
                 studentBook.getBook().setStock(studentBook.getBook().getStock()+1);
+
+                // compare issue date and return date
+                int days = (int)ChronoUnit.DAYS.between(MyDate.toLocalDate(studentBook.getIssue_date()), localDate);
+                if(days > BOOKISSUEDAYS){
+                    System.out.println("You have return book " + (days-BOOKISSUEDAYS) + " days late ");
+                    int fine = ((days-BOOKISSUEDAYS) * FINEPERLOST);
+                    System.out.println("Fine : " + fine);
+                    student.getAccount().setFineAmount(student.getAccount().getFineAmount() + ((days-BOOKISSUEDAYS) * FINEPERLOST));
+                }
+
+                studentBook.setReturn_date(returnDate);
             }
         }
 
@@ -60,7 +72,7 @@ public class StudentUtil {
 
     public void readStudentBook(){
         System.out.println("Student Books");
-        List<StudentBook> studentBooks = student.getBooks();
+        List<StudentBook> studentBooks = student.getStudentBooks();
         for(StudentBook studentBook: studentBooks){
             System.out.println(studentBook.getBook());
         }
@@ -79,14 +91,24 @@ public class StudentUtil {
         Query query = session.createQuery("from Book where id=:id");
         query.setLong("id", id);
         Book book = (Book) query.uniqueResult();
-        book.setStock(book.getStock() - 1);
         scanner.nextLine();
         System.out.println("Enter issue date (dd/mm/yyyy)");
         String issuedate  = scanner.nextLine();
         String[] dates = issuedate.split("/");
         Date date = MyDate.toDate(LocalDate.of(Integer.parseInt(dates[2]), Integer.parseInt(dates[1]), Integer.parseInt(dates[0])));
-        student.addBook(book, date);
+        for(StudentBook studentBook : student.getStudentBooks()){
+            if(studentBook.getBook().getId() == id && studentBook.getReturn_date() == null){
+                System.out.println("You have already Issued this book");
+                return;
+            }
+        }
+        book.setStock(book.getStock() - 1);
+        StudentBook sb = new StudentBook(student, book, date);
+        student.getStudentBooks().add(sb);
+        book.getStudentBooks().add(sb);
         student.getAccount().setNoBorrowedBook(student.getAccount().getNoBorrowedBook()+1);
+        session.save(sb);
+        System.out.println("Book Issued !");
     }
 
     public void searchBook(){

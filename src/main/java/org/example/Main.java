@@ -2,20 +2,36 @@ package org.example;
 
 import org.example.Model.*;
 import org.example.Util.*;
+import org.hibernate.Query;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 
+//import java.sql.Date;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
 import java.util.Scanner;
+import java.util.concurrent.TimeUnit;
 
 public class Main {
     static Session session = null;
     public static void main(String[] args) {
         SessionFactory sessionFactory = HiberanteUtil.getFactory();
         session = sessionFactory.openSession();
+
+//        main();
         session.beginTransaction();
 
-        main();
+        StudentUtil studentUtil = new StudentUtil(session);
+        studentUtil.studentLogin(105, "123");
+//        studentUtil.issueBook();
+//        studentUtil.returnBook();
+
+        LibrarianUtil librarianUtil = new LibrarianUtil(session);
+//        librarianUtil.displayStudentData();
+//        librarianUtil.deleteStudentData();
+        librarianUtil.deleteBook();
+//        librarianUtil.updateStudentData();
 
         session.getTransaction().commit();
         session.close();
@@ -65,6 +81,9 @@ public class Main {
         }
         boolean loop = true;
         while(loop) {
+
+            session.beginTransaction();
+
             System.out.println("Press 1 for Add Librarian");
             System.out.println("Press 2 for Remove Librarian");
             System.out.println("Press 3 for Update Librarian");
@@ -88,6 +107,8 @@ public class Main {
                 default:
                     System.out.println("Invalid Entry !");
             }
+
+            session.getTransaction().commit();
         }
     }
 
@@ -106,6 +127,9 @@ public class Main {
         }
         boolean loop = true;
         while(loop) {
+
+            session.beginTransaction();
+
             System.out.println("Press 1 for Read Student Info");
             System.out.println("Press 2 for Issue Book");
             System.out.println("Press 3 for Return Book");
@@ -132,6 +156,8 @@ public class Main {
                 default:
                     System.out.println("Invalid Entry !");
             }
+
+            session.getTransaction().commit();
         }
 
     }
@@ -151,6 +177,8 @@ public class Main {
         }
         boolean loop = true;
         while(loop) {
+            session.beginTransaction();
+
             System.out.println("Press 1 for Read Librarian Data");
             System.out.println("Press 2 for Add Book");
             System.out.println("Press 3 for Update Book");
@@ -161,7 +189,9 @@ public class Main {
             System.out.println("Press 8 for Add Student");
             System.out.println("Press 9 for Delete Student");
             System.out.println("Press 10 for Update Student");
-            System.out.println("Press 11 for Back <-");
+            System.out.println("Press 11 for Search Student");
+            System.out.println("Press 12 for Report Lost Book");
+            System.out.println("Press 13 for Back <-");
             int choice = scanner.nextInt();
             switch (choice) {
                 case 1: librarianUtil.readLibrarianData();
@@ -184,11 +214,17 @@ public class Main {
                     break;
                 case 10: librarianUtil.updateStudentData();
                     break;
-                case 11: loop = false;
+                case 11: librarianUtil.searchbyRoll();
+                    break;
+                case 12: librarianUtil.reportLostBook();
+                    break;
+                case 13: loop = false;
                     break;
                 default:
                     System.out.println("Invalid Entry !");
             }
+
+            session.getTransaction().commit();
         }
     }
 

@@ -9,14 +9,12 @@ public class StudentBook {
 
     @Id
     @GeneratedValue
-    private StudentBookId id;
+    private int id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("studentId")
     private Student student;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
-    @MapsId("bookId")
+    @ManyToOne(fetch = FetchType.LAZY)
     private Book book;
 
     private Date issue_date = new Date();
@@ -28,7 +26,6 @@ public class StudentBook {
         this.student = student;
         this.book = book;
         this.issue_date = date;
-        this.id = new StudentBookId(student.getId(), book.getId());
     }
 
     public Date getIssue_date() {
@@ -47,11 +44,11 @@ public class StudentBook {
         this.return_date = return_date;
     }
 
-    public StudentBookId getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(StudentBookId id) {
+    public void setId(int id) {
         this.id = id;
     }
 

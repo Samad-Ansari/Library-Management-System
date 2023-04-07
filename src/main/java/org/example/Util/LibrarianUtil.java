@@ -29,42 +29,8 @@ public class LibrarianUtil {
         return true;
     }
 
-    public void addLibrarian(){
-        System.out.println("Enter Emp Id");
-        int empid = scanner.nextInt();
-        scanner.nextLine();
-        System.out.println("Enter name");
-        String name = scanner.nextLine();
-        Librarian librarian = new Librarian(name, empid);
-        session.save(librarian);
-    }
-
     public void readLibrarianData(){
-        System.out.println(this.librarian);
-    }
-
-    public void deleteLibrarianData(){
-        System.out.println("Enter Librarian id ");
-        int id = scanner.nextInt();
-        Query query = session.createQuery("delete from Librarian where id = :id");
-        query.setLong("id", id);
-        query.executeUpdate();
-    }
-
-    public void updateLibrarianData(){
-        System.out.println("Enter new Name ");
-        String value = scanner.nextLine();
-        System.out.println("Enter empId ");
-        int empId = scanner.nextInt();
-        Query query = session.createQuery("update Librarian set name = :value where  empId = :empId");
-        query.setString("value", value);
-        query.setLong("empId", empId);
-        int result = query.executeUpdate();;
-        if(result > 0){
-            System.out.println("\nUpdate SuccessfulL !");
-        } else {
-            System.out.println("\nUpdate Unsuccessfull !");
-        }
+        System.out.println(librarian);
     }
 
     public void addBook(){
@@ -84,20 +50,17 @@ public class LibrarianUtil {
     public void deleteBook(){
         System.out.println("Enter Book Id");
         int id = scanner.nextInt();
-        Query query = session.createQuery("from StudentBook where book_id=:id");
+        Query query = session.createQuery("from Book where id=:id");
         query.setLong("id", id);
-        List<StudentBook> items = (List<StudentBook>) query.list();
+        Book book = (Book) query.uniqueResult();
+        List<StudentBook> items = book.getStudentBooks();
         for(StudentBook item: items){
             if(item.getBook().getId() == id){
-                query = session.createQuery("delete from StudentBook where book_id = :id");
-                query.setLong("id", item.getBook().getId());
-                query.executeUpdate();
+                session.delete(item);
             }
         }
 
-        query = session.createQuery("delete from Book where id = :id");
-        query.setLong("id", id);
-        query.executeUpdate();
+        session.delete(book);
 
     }
 
@@ -143,14 +106,40 @@ public class LibrarianUtil {
         }
     }
 
+    public void searchbyRoll(){
+        System.out.println("Enter Student Roll Number ");
+        int roll = scanner.nextInt();
+        Query query = session.createQuery("from Student where rollNumber = :roll");
+        query.setLong("roll", roll);
+        Student student = (Student)query.uniqueResult();
+        System.out.println(student);
+    }
+
+    public void reportLostBook(){
+        System.out.println("Enter Student Roll Number ");
+        int roll = scanner.nextInt();
+        Query query = session.createQuery("from Student where rollNumber = :roll");
+        query.setLong("roll", roll);
+        Student student = (Student)query.uniqueResult();
+        System.out.println("Enter Book Id");
+        int id = scanner.nextInt();
+        query = session.createQuery("from Book where id=:id");
+        query.setLong("id",id);
+        Book book = (Book)query.uniqueResult();
+        student.getAccount().setNoLostBook(student.getAccount().getNoLostBook()+1);
+        student.getAccount().setFineAmount(student.getAccount().getFineAmount() + book.getPrice());
+
+    }
+
     public void displayStudentData(){
         Query query = session.createQuery("from Student");
         List<Student> studentList = query.list();
         for(Student student: studentList){
             System.out.println(student);
             student.checkAccount();
-            for(StudentBook studentBook : student.getBooks()){
+            for(StudentBook studentBook : student.getStudentBooks()){
                 System.out.println(studentBook.getBook());
+                System.out.println("Issue Date " + studentBook.getIssue_date() + ", Return Date " + studentBook.getReturn_date());
             }
         }
     }
@@ -182,32 +171,37 @@ public class LibrarianUtil {
         Query query = session.createQuery("from Student where rollNumber = :roll");
         query.setLong("roll",roll);
         Student student = (Student) query.uniqueResult();
-
-        query = session.createQuery("from StudentBook where student_id=:id");
-        query.setLong("id", student.getId());
-        List<StudentBook> items = (List<StudentBook>) query.list();
+//
+//        query = session.createQuery("from StudentBook where student_id=:id");
+//        query.setLong("id", student.getId());
+        List<StudentBook> items = student.getStudentBooks();
         for(StudentBook item: items){
             if(item.getStudent().getId() == student.getId()){
-                query = session.createQuery("delete from StudentBook where student_id = :id");
-                query.setLong("id", item.getStudent().getId());
+                session.delete(item);
+
             }
         }
 
         session.delete(student);
-
     }
 
     public void updateStudentData(){
-        System.out.print("Enter target data (name/className) ");
+        System.out.print("Enter target data (name/class) ");
         String target = scanner.nextLine();
         System.out.print("Enter value for " + target + " ");
         String value = scanner.nextLine();
         System.out.println("Enter roll Number ");
         int roll = scanner.nextInt();
         Query query = null;
+        if(target.equalsIgnoreCase("class")) {
+            target = "classNumber";
+        }
         query = session.createQuery("update Student set "+ target + " = :newValue where  rollNumber = :roll");
         query.setLong("roll", roll);
-        query.setString("newValue", value);
+        if(target == "name")
+            query.setString("newValue", value);
+        else
+            query.setLong("newValue", Integer.parseInt(value));
         int result = query.executeUpdate();;
         if(result > 0){
             System.out.println("\nUpdate SuccessfulL !");

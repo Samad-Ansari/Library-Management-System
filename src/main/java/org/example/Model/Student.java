@@ -20,22 +20,15 @@ public class Student {
     @OneToOne(cascade = CascadeType.ALL)
     private Account account;
 
-    @OneToMany(
-            mappedBy = "book",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<StudentBook> books = new ArrayList<>();
+    @OneToMany(mappedBy = "student")
+    private List<StudentBook> studentBooks = new ArrayList<>();
 
-    public void addBook(Book book, Date date){
-        StudentBook sb = new StudentBook(this, book, date);
-        books.add(sb);
-        book.getStudents().add(sb);
+    public List<StudentBook> getStudentBooks() {
+        return studentBooks;
     }
 
-    public void removeBook(Book book){
-        this.books.remove(book);
-        book.getStudents().remove(this);
+    public void setStudentBooks(List<StudentBook> studentBooks) {
+        this.studentBooks = studentBooks;
     }
 
     Student(){}
@@ -44,14 +37,6 @@ public class Student {
         this.name = name;
         this.classNumber = classNumber;
         this.password = password;
-    }
-
-    public List<StudentBook> getBooks() {
-        return books;
-    }
-
-    public void setBooks(List<StudentBook> books) {
-        this.books = books;
     }
 
     public void addAccount(Account account){

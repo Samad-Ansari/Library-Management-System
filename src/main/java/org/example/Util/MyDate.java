@@ -10,4 +10,8 @@ public class MyDate {
         return date;
     }
 
+    public static LocalDate toLocalDate(Date date){
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
 }

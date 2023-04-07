@@ -14,12 +14,9 @@ public class Book {
     private String author;
     private int price;
     private int stock;
-    @OneToMany(
-            mappedBy = "book",
-            cascade = CascadeType.ALL,
-            orphanRemoval = true
-    )
-    private List<StudentBook> students = new ArrayList<>();
+
+    @OneToMany( mappedBy = "book")
+    private List<StudentBook> studentBooks = new ArrayList<>();
 
     public Book(){}
 
@@ -30,12 +27,12 @@ public class Book {
         this.stock = stock;
     }
 
-    public List<StudentBook> getStudents() {
-        return students;
+    public List<StudentBook> getStudentBooks() {
+        return studentBooks;
     }
 
-    public void setStudents(List<StudentBook> students) {
-        this.students = students;
+    public void setStudentBooks(List<StudentBook> studentBooks) {
+        this.studentBooks = studentBooks;
     }
 
     public int getId() {
